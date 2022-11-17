@@ -1,3 +1,6 @@
+from enum import Enum
+
+
 class Buffer:
     def __init__(self, data, *args, write=False):
         self.data = data
@@ -20,22 +23,27 @@ class Buffer:
             if u8_1 is not None and u8_2 is not None:
                 ret = u8_2 | u8_1
             else:
-                print('Past end of bytearray: position ' + str(self.pos) + ' out of ' + str(len(self.data)) + 'on attempted read of 2')
-                return None
+                ret = None
+                print('Past end of bytearray: position ' + str(self.pos) + ' out of ' + str(len(self.data)) +
+                                ' on attempted read of 2')
             # Don't need to increment self.pos because it is handled by read_u8()
             return ret
         else:
             print(self.data[self.pos:])
-            print('Past end of bytearray: position ' + str(self.pos) + ' out of ' + str(len(self.data)) + 'on '
-                                                                                                          'attempted '
-                                                                                                          'read of 2')
+            print('Past end of bytearray: position ' + str(self.pos) + ' out of ' + str(len(self.data)) + 'on'
+                  ' attempted read of 2')
             return None
 
     def read_u32(self):
         if self.pos + 3 < len(self.data):
             u16_1 = self.read_u16()
             u16_2 = self.read_u16() << 16
-            ret = u16_2 | u16_1
+            if u16_1 is not None and u16_2 is not None:
+                ret = u16_2 | u16_1
+            else:
+                ret = None
+                print('Past end of bytearray: position ' + str(self.pos) + ' out of ' + str(len(self.data)) +
+                                ' on attempted read of 4')
             # Don't need to increment self.pos because it is handled by read_u16()
             return ret
         else:
@@ -47,14 +55,19 @@ class Buffer:
         if self.pos + 7 < len(self.data):
             u32_1 = self.read_u32()
             u32_2 = self.read_u32() << 32
-            ret = u32_2 | u32_1
+            if u32_1 is not None and u32_2 is not None:
+                ret = u32_2 | u32_1
+            else:
+                ret = None
+                print('Past end of bytearray: position ' + str(self.pos) + ' out of ' + str(len(self.data)) +
+                      ' on attempted read of 8')
             # Don't need to increment self.pos because it is handled by read_u32()
             return ret
         else:
             raise Exception('Past end of bytearray')
 
     def read_bytes(self, read_length):
-        if self.pos + read_length <= len(self.data):
+        if self.pos + read_length - 1 < len(self.data):
             ret = self.data[self.pos:self.pos + read_length]
             self.pos += read_length
             return ret
