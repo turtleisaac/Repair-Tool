@@ -3,12 +3,8 @@ from enum import Enum
 
 class GenericErrors(Enum):
     INVALID_FILE_LENGTH = 0
-
-
-class ErrorData:
-    def __init__(self, error_type, repair_instructions):
-        self.error_type = error_type
-        self.repair_instructions = repair_instructions
+    MISSING_TERMINATOR = 1
+    INVALID_ENTRY_AMOUNT = 2
 
 
 class ErrorType(Enum):

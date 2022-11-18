@@ -26,3 +26,11 @@ class PersonalFields(Enum):
     RUN_CHANCE = 21
     COLOR = 22
     TMS = 23
+
+
+class LevelUpLearnsetFields(Enum):
+    pass
+
+
+class EvolutionsFields(Enum):
+    pass
