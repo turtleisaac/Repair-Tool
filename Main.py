@@ -5,7 +5,7 @@ from ttkthemes import ThemedTk
 import os
 from tkinter import *
 
-from suite.Repairer import Repairer
+from workshop.Repairer import Repairer
 
 # Developed by Turtleisaac
 

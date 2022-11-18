@@ -29,7 +29,8 @@ class PersonalFields(Enum):
 
 
 class LevelUpLearnsetFields(Enum):
-    pass
+    MOVE_ID = 0
+    LEVEL = 1
 
 
 class EvolutionsFields(Enum):

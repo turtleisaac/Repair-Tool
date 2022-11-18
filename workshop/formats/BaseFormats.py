@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 
 from Buffer import Buffer
-from suite.errors.Error import Error
-from suite.errors.ErrorType import ErrorType, GenericErrors
+from workshop.errors.Error import Error
+from workshop.errors.ErrorType import ErrorType, GenericErrors
 
 
 class StrictFileFormat(ABC):
@@ -23,14 +23,15 @@ class StrictFileFormat(ABC):
     def read_write_action(self, field, buffer, *args, read_mode):
         pass
 
-    def list_error(self):
+    def list_errors(self):
         for error in self.errors:
-            print('\t%s\n\t\t%s\n\t\t%s' % (error.enum.name, error.type.name, error.text))
+            if not error.resolved:
+                print('\t%s\n\t\t%s\n\t\t%s' % (error.enum.name, error.type.name, error.text))
 
     def get_errors(self):
         errors = list()
         for field in list(self.file_enum):
-            if self.fields[field] is None:
+            if self.fields[field.value] is None:
                 errors.append(Error(field, ErrorType.DATA_MISSING, "%s: Value Missing" % field.name))
 
         return errors
@@ -49,24 +50,22 @@ class StrictFileFormat(ABC):
     def write(self):
         buffer = Buffer(bytearray(self.expected_size), write=True)
         for field in list(self.file_enum):
-            self.read_write_action(field, buffer, self.fields[field], read_mode=False)
+            self.read_write_action(field, buffer, self.fields[field.value], read_mode=False)
 
         return buffer.data
 
 
 class FlexibleFileFormat(ABC):
-    def __init__(self, file_enum, entry_class, id):
+    def __init__(self, file_enum, entry_class, max_entries, id):
         self.errors = list()
         self.id = id
         self.file_enum = file_enum
         self.entry_class = entry_class
         self.entries = list()
         self.num_entries = 0
-        self.max_entries = 0
+        self.max_entries = max_entries
+        self.entries_to_remove = list()
 
-    @abstractmethod
-    def resolve_error(self, error):
-        pass
 
     @abstractmethod
     def read_write_action(self, field, buffer, *args, read_mode):
@@ -85,12 +84,21 @@ class FlexibleFileFormat(ABC):
         pass
 
     @abstractmethod
+    def write_entry(self, buffer, entry):
+        pass
+
+    @abstractmethod
+    def resolve_error(self, error):
+        pass
+
+    @abstractmethod
     def get_errors(self):
         pass
 
-    def list_error(self):
+    def list_errors(self):
         for error in self.errors:
-            print('\t%s\n\t\t%s\n\t\t%s' % (error.enum.name, error.type.name, error.text))
+            if not error.resolved:
+                print('\t%s\n\t\t%s\n\t\t%s' % (error.enum.name, error.type.name, error.text))
 
     def resolve_errors(self):
         for error in self.errors:
@@ -99,4 +107,8 @@ class FlexibleFileFormat(ABC):
     def read_entries(self, buffer):
         for num in range(self.num_entries):
             self.read_entry(buffer)
+
+    def write_entries(self, buffer):
+        for entry in self.entries:
+            self.write_entry(buffer, entry)
 
