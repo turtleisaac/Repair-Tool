@@ -1,12 +1,11 @@
-from tkinter import ttk, TOP, TRUE, LEFT, W, E
+from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
 from ttkthemes import ThemedTk
 import os
-from tkinter.ttk import *
 from tkinter import *
 
-from Repairer import Repairer
+from suite.Repairer import Repairer
 
 # Developed by Turtleisaac
 

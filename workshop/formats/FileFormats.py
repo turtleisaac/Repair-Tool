@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 
 from Buffer import Buffer
-from Error import Error
-from ErrorType import ErrorType, GenericErrors
+from suite.errors.Error import Error
+from suite.errors.ErrorType import ErrorType, GenericErrors
 
 
 class StrictFileFormat(ABC):

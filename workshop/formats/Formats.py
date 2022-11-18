@@ -1,10 +1,7 @@
-from abc import ABC
-
-from Buffer import Buffer
-from Error import Error
+from suite.errors.Error import Error
 from FileFormats import StrictFileFormat, FlexibleFileFormat
 from FormatEnums import PersonalFields, LevelUpLearnsetFields
-from ErrorType import ErrorType, GenericErrors
+from suite.errors.ErrorType import ErrorType, GenericErrors
 
 
 class Personal(StrictFileFormat):
