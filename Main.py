@@ -23,7 +23,7 @@ style.configure("Hyperlink.TLabel", foreground="blue")
 
 label1 = ttk.Label(top_frame, text="Repair Tool", font='Helvetica 18 bold')
 label2 = ttk.Label(top_frame, text="Created by Turtleisaac")
-label3 = ttk.Label(top_frame, text="PPREctifies what's been PPRExploded", font='14')
+label3 = ttk.Label(top_frame, text="PPREpairs what's been PPRExploded", font='14')
 
 
 def create():
