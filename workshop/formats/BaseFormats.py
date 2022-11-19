@@ -6,7 +6,8 @@ from workshop.errors.ErrorType import ErrorType, GenericErrors
 
 
 class StrictFileFormat(ABC):
-    def __init__(self, expected_size, file_enum, buffer, id):
+    def __init__(self, expected_size, file_enum, buffer, name, id):
+        self.name = name
         self.expected_size = expected_size
         self.errors = list()
         self.id = id
@@ -24,9 +25,12 @@ class StrictFileFormat(ABC):
         pass
 
     def list_errors(self):
-        for error in self.errors:
+        if len(self.errors) > 0:
+            print('%s #%i' % (self.name, self.id))
+        for i in range(len(self.errors)):
+            error = self.errors[i]
             if not error.resolved:
-                print('\t%s\n\t\t%s\n\t\t%s' % (error.enum.name, error.type.name, error.text))
+                print('%i: %s (%s) \"%s\"' % (i, error.enum.name, error.type.name, error.text))
 
     def get_errors(self):
         errors = list()
@@ -56,7 +60,8 @@ class StrictFileFormat(ABC):
 
 
 class FlexibleFileFormat(ABC):
-    def __init__(self, file_enum, entry_class, max_entries, id):
+    def __init__(self, file_enum, entry_class, max_entries, name, id):
+        self.name = name
         self.errors = list()
         self.id = id
         self.file_enum = file_enum
@@ -96,9 +101,12 @@ class FlexibleFileFormat(ABC):
         pass
 
     def list_errors(self):
-        for error in self.errors:
+        if len(self.errors) > 0:
+            print('%s #%i' % (self.name, self.id))
+        for i in range(len(self.errors)):
+            error = self.errors[i]
             if not error.resolved:
-                print('\t%s\n\t\t%s\n\t\t%s' % (error.enum.name, error.type.name, error.text))
+                print('%i: %s (%s) \"%s\"' % (i, error.enum.name, error.type.name, error.text))
 
     def resolve_errors(self):
         for error in self.errors:

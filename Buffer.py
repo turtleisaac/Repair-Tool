@@ -83,6 +83,8 @@ class Buffer:
     def seek_global(self, offset):
         if offset < len(self.data):
             self.pos = offset
+        elif offset < 0:
+            pass
         else:
             raise Exception('Past end of bytearray')
 

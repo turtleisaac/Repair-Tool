@@ -2,7 +2,7 @@ import ndspy.rom
 import ndspy.narc
 
 from Buffer import Buffer
-from workshop.formats.Formats import Personal, LevelUpLearnset
+from workshop.formats.Formats import Personal, LevelUpLearnset, Evolutions
 
 
 class Repairer:
@@ -21,7 +21,7 @@ class Repairer:
         elif self.game_code == b'IPKE':
             self.personal_narc = ndspy.narc.NARC(self.rom.getFileByName('/a/0/0/2'))
             self.learnsets_narc = ndspy.narc.NARC(self.rom.getFileByName('/a/0/3/3'))
-            # self.evolutions_narc = ndspy.narc.NARC(self.rom.getFileByName('/poketool/personal/evo.narc'))
+            self.evolutions_narc = ndspy.narc.NARC(self.rom.getFileByName('/a/0/3/4'))
 
     def repair(self):
         if not self.valid:
@@ -32,13 +32,23 @@ class Repairer:
             entry.list_errors()
             entry.resolve_errors()
             self.personal_narc.files[i] = entry.write()
+        print('---Personal End---')
 
         for i in range(len(self.learnsets_narc.files)):
             entry = LevelUpLearnset(Buffer(self.learnsets_narc.files[i]), i)
             entry.list_errors()
             entry.resolve_errors()
             self.learnsets_narc.files[i] = entry.write()
-        print('moo')
+        print('---Level-Up Learnsets End---')
+
+        for i in range(len(self.evolutions_narc.files)):
+            entry = Evolutions(Buffer(self.evolutions_narc.files[i]), i)
+            entry.list_errors()
+            entry.resolve_errors()
+            self.evolutions_narc.files[i] = entry.write()
+        print('---Evolutions End---')
+
+        print('-----All programmed formats parsed, Program End-----')
 
 
 if __name__ == "__main__":

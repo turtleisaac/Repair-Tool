@@ -34,4 +34,7 @@ class LevelUpLearnsetFields(Enum):
 
 
 class EvolutionsFields(Enum):
-    pass
+    METHOD = 0
+    PADDING = 1
+    REQUIREMENT = 2
+    RESULT = 3

@@ -2,15 +2,16 @@ import random
 
 from Buffer import Buffer
 from workshop.errors.Error import Error
-from workshop.formats.BaseFormats import StrictFileFormat, FlexibleFileFormat
-from workshop.formats.FormatEnums import PersonalFields, LevelUpLearnsetFields
-from workshop.errors.ErrorType import ErrorType, GenericErrors
+from workshop.formats.BaseFormats import *
+from workshop.formats.FormatEnums import *
+from workshop.errors.ErrorType import *
 
 
 class Personal(StrictFileFormat):
     def __init__(self, buffer, id):
         expected_size = 44
-        super().__init__(expected_size, PersonalFields, buffer, id)
+        name = 'Personal'
+        super().__init__(expected_size, PersonalFields, buffer, name, id)
         # hp = buffer.read_u8()
         # atk = buffer.read_u8()
         # defence = buffer.read_u8()
@@ -90,6 +91,7 @@ class LearnsetEntry:
     def __init__(self, val):
         self.move_id = val & 0x1FF
         self.level = (val >> 9) & 0x7F
+
         self.identifier = random.random() * 2000
 
 
@@ -100,7 +102,8 @@ def learnset_sort_helper(entry):
 class LevelUpLearnset(FlexibleFileFormat):
     def __init__(self, buffer, id):
         max_entries = 20
-        super().__init__(LevelUpLearnsetFields, LearnsetEntry, max_entries, id)
+        name = 'Level-Up Learnsets'
+        super().__init__(LevelUpLearnsetFields, LearnsetEntry, max_entries, name, id)
         self.read(buffer)
 
     def read(self, buffer):
@@ -116,7 +119,8 @@ class LevelUpLearnset(FlexibleFileFormat):
             else:
                 self.num_entries = int(len(buffer.data) / 2)
                 self.errors.append(
-                    Error(GenericErrors.MISSING_TERMINATOR, ErrorType.DATA_MISSING, "Missing terminator", resolved=True))
+                    Error(GenericErrors.MISSING_TERMINATOR, ErrorType.DATA_MISSING, "Missing terminator",
+                          resolved=True))
 
         if self.num_entries > self.max_entries:
             self.num_entries = self.max_entries
@@ -198,3 +202,124 @@ class LevelUpLearnset(FlexibleFileFormat):
             elif error.enum == GenericErrors.INVALID_SORTING:
                 self.entries.sort(key=learnset_sort_helper)
                 error.resolved = True
+
+
+"""
+START OF EVOLUTIONS
+"""
+
+
+class EvolutionEntry:
+    def __init__(self, values):
+        self.method = values[0]
+        self.padding = values[1]
+        self.requirement = values[2]
+        self.result = values[3]
+
+        self.identifier = random.random() * 2000
+
+
+class Evolutions(FlexibleFileFormat):
+    def __init__(self, buffer, id):
+        max_entries = 7
+        name = 'Evolutions'
+        super().__init__(EvolutionsFields, EvolutionEntry, max_entries, name, id)
+        self.read(buffer)
+
+    def read(self, buffer):
+        if len(buffer.data) % 6 == 2:
+            self.num_entries = int((len(buffer.data) - 2) / 6)
+            buffer.seek_global(len(buffer.data) - 2)
+            last = buffer.read_u16()
+            if last != 0:
+                self.errors.append(Error(GenericErrors.INVALID_TERMINATOR, ErrorType.INVALID_VALUE,
+                                         "Invalid terminator", resolved=True))
+        elif len(buffer.data) % 6 == 0:
+            self.num_entries = int(len(buffer.data) / 6)
+            self.errors.append(Error(GenericErrors.MISSING_TERMINATOR, ErrorType.DATA_MISSING, "Missing terminator",
+                                     resolved=True))
+
+        if self.num_entries > self.max_entries:
+            self.num_entries = self.max_entries
+            self.errors.append(
+                Error(GenericErrors.INVALID_ENTRY_AMOUNT, ErrorType.INVALID_VALUE, "Too many entries", resolved=True))
+        elif self.num_entries < self.max_entries:
+            self.errors.append(
+                Error(GenericErrors.INVALID_ENTRY_AMOUNT, ErrorType.INVALID_VALUE, "Too few entries"))
+
+        buffer.seek_global(0)
+        self.read_entries(buffer)
+
+    def read_entry(self, buffer):
+        self.entries.append(EvolutionEntry(self.read_write_action(None, buffer, read_mode=True)))
+
+    def read_write_action(self, field, buffer, *args, read_mode):
+        if not read_mode and len(args) != 4:
+            raise Exception('Invalid data provided for write mode')
+
+        if read_mode:
+            return buffer.read_u8(), buffer.read_u8(), buffer.read_u16(), buffer.read_u16()
+        else:
+            buffer.write_u8(args[0])
+            buffer.write_u8(args[1])
+            buffer.write_u16(args[2])
+            buffer.write_u16(args[3])
+
+    def write(self):
+        size = self.num_entries * 6 + 2
+
+        buffer = Buffer(bytearray(size), write=True)
+        self.write_entries(buffer)
+        buffer.write_u16(0)
+
+        return buffer.data
+
+    def write_entry(self, buffer, entry):
+        self.read_write_action(None, buffer, entry.method, entry.padding, entry.requirement, entry.result,
+                               read_mode=False)
+
+    def get_errors(self):
+        for entry in self.entries:
+            if entry.method > 26:
+                self.errors.append(
+                    Error(EvolutionsFields.METHOD, ErrorType.INVALID_VALUE, 'Invalid method id: %i' % entry.method,
+                          entry.identifier))
+            elif entry.padding != 0:
+                self.errors.append(
+                    Error(EvolutionsFields.PADDING, ErrorType.INVALID_VALUE, 'Invalid padding: %i' % entry.padding,
+                          entry.identifier))
+            elif entry.result > 493:
+                self.errors.append(
+                    Error(EvolutionsFields.RESULT, ErrorType.INVALID_VALUE, 'Invalid result: %i' % entry.result,
+                          entry.identifier))
+
+    def resolve_error(self, error):
+        if not error.resolved:
+            if error.enum == GenericErrors.INVALID_ENTRY_AMOUNT and self.num_entries > self.max_entries:
+                self.num_entries = self.max_entries
+                while len(self.entries) != self.num_entries:
+                    self.entries.pop(len(self.entries - 1))
+                error.resolved = True
+            elif error.enum == GenericErrors.INVALID_ENTRY_AMOUNT and self.num_entries < self.max_entries:
+                self.num_entries = self.max_entries
+                while len(self.entries) != self.num_entries:
+                    self.entries.append(EvolutionEntry((0, 0, 0, 0)))
+                error.resolved = True
+            elif error.enum == EvolutionsFields.METHOD:
+                for entry in self.entries:
+                    if entry.identifier == error.instructions:
+                        self.entries.remove(entry)
+                        error.resolved = True
+                        break
+            elif error.enum == EvolutionsFields.PADDING:
+                for entry in self.entries:
+                    if entry.identifier == error.instructions:
+                        entry.padding = 0
+                        error.resolved = True
+                        break
+            elif error.enum == EvolutionsFields.RESULT:
+                for entry in self.entries:
+                    if entry.identifier == error.instructions:
+                        self.entries.remove(entry)
+                        error.resolved = True
+                        break
