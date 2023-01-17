@@ -38,12 +38,12 @@ def create():
         repairer = Repairer(rom_path)
         repairer.repair()
 
-        f_out = filedialog.asksaveasfilename(title='Select Output File', defaultextension=".nds")
+        f_out = filedialog.asksaveasfilename(title='Select Output ROM', defaultextension=".nds")
         if f_out is None:  # asksaveasfile return `None` if dialog closed with "cancel".
             return
         filepath_output = os.path.abspath(f_out)
 
-        # creator.pickle(filepath_output)
+        repairer.write(filepath_output)
         messagebox.showinfo(title='Repair Tool', message='ROM Repair Complete! Output can be found at:\n' +
                                                          filepath_output)
 

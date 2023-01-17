@@ -123,9 +123,7 @@ class LevelUpLearnset(FlexibleFileFormat):
                           resolved=True))
 
         if self.num_entries > self.max_entries:
-            self.num_entries = self.max_entries
-            self.errors.append(
-                Error(GenericErrors.INVALID_ENTRY_AMOUNT, ErrorType.INVALID_VALUE, "Too many entries", resolved=True))
+            self.errors.append(Error(GenericErrors.INVALID_ENTRY_AMOUNT, ErrorType.INVALID_VALUE, "Too many entries"))
 
         buffer.seek_global(0)
         self.read_entries(buffer)
@@ -185,7 +183,15 @@ class LevelUpLearnset(FlexibleFileFormat):
             if error.enum == GenericErrors.INVALID_ENTRY_AMOUNT and self.num_entries > self.max_entries:
                 self.num_entries = self.max_entries
                 while len(self.entries) != self.num_entries:
-                    self.entries.pop(len(self.entries - 1))
+                    level_one = []
+                    for entry in self.entries:  # first prioritizes removing moves which are duplicated in the learnset
+                        if entry.level == 1:
+                            level_one.append(entry)
+                            continue
+                        for level_one_entry in level_one:
+                            if entry.move_id == level_one_entry.move_id:
+                                self.entries.remove(level_one_entry)  #TODO finish
+                    # self.entries.pop(len(self.entries - 1))
                 error.resolved = True
             elif error.enum == LevelUpLearnsetFields.MOVE_ID:
                 for entry in self.entries:

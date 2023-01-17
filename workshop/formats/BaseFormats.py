@@ -26,7 +26,7 @@ class StrictFileFormat(ABC):
 
     def list_errors(self):
         if len(self.errors) > 0:
-            print('%s #%i' % (self.name, self.id))
+            print('%s #%i (%i errors)' % (self.name, self.id, len(self.errors)))
         for i in range(len(self.errors)):
             error = self.errors[i]
             if not error.resolved:
@@ -102,7 +102,7 @@ class FlexibleFileFormat(ABC):
 
     def list_errors(self):
         if len(self.errors) > 0:
-            print('%s #%i' % (self.name, self.id))
+            print('%s #%i (%i errors)' % (self.name, self.id, len(self.errors)))
         for i in range(len(self.errors)):
             error = self.errors[i]
             if not error.resolved:

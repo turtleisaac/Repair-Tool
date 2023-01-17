@@ -15,13 +15,16 @@ class Repairer:
             self.valid = False
             return
         elif self.game_code == b'CPUE':
-            self.personal_narc = ndspy.narc.NARC(self.rom.getFileByName('/poketool/personal/pl_personal.narc'))
-            self.learnsets_narc = ndspy.narc.NARC(self.rom.getFileByName('/poketool/personal/wotbl.narc'))
-            self.evolutions_narc = ndspy.narc.NARC(self.rom.getFileByName('/poketool/personal/evo.narc'))
+            self.personal_path = '/poketool/personal/pl_personal.narc'
+            self.learnsets_path = '/poketool/personal/wotbl.narc'
+            self.evolutions_path = '/poketool/personal/evo.narc'
         elif self.game_code == b'IPKE':
-            self.personal_narc = ndspy.narc.NARC(self.rom.getFileByName('/a/0/0/2'))
-            self.learnsets_narc = ndspy.narc.NARC(self.rom.getFileByName('/a/0/3/3'))
-            self.evolutions_narc = ndspy.narc.NARC(self.rom.getFileByName('/a/0/3/4'))
+            self.personal_path = '/a/0/0/2'
+            self.learnsets_path = '/a/0/3/3'
+            self.evolutions_path = '/a/0/3/4'
+        self.personal_narc = ndspy.narc.NARC(self.rom.getFileByName(self.personal_path))
+        self.learnsets_narc = ndspy.narc.NARC(self.rom.getFileByName(self.learnsets_path))
+        self.evolutions_narc = ndspy.narc.NARC(self.rom.getFileByName(self.evolutions_path))
 
     def repair(self):
         if not self.valid:
@@ -50,7 +53,13 @@ class Repairer:
 
         print('-----All programmed formats parsed, Program End-----')
 
+    def write(self, output_path):
+        self.rom.setFileByName(self.personal_path, self.personal_narc.save())
+        self.rom.setFileByName(self.learnsets_path, self.learnsets_narc.save())
+        self.rom.setFileByName(self.evolutions_path, self.evolutions_narc.save())
+        self.rom.saveToFile(output_path)
+
 
 if __name__ == "__main__":
-    repairer = Repairer("../Rebooted5-2.nds")
+    repairer = Repairer("../RenPlat_Repaired.nds")
     repairer.repair()
