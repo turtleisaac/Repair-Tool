@@ -12,3 +12,14 @@ A tool that (hopefully) will repair data corruption in Gen 4 Pokémon ROMs that 
 ## How it works
 
 In a nutshell, this tool goes through specific game files and verifies the length of each file, the contents of each byte within the file, and ensures that each file adheres to the specification for that specific file type.
+
+## Usage
+
+### First time run
+
+Run `pip3 install -r requirements.txt` from terminal in the main directory of this tool.
+Then run `python3 Main.py`.
+
+### Otherwise
+
+Run `python3 Main.py`.
